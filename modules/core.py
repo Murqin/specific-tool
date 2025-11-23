@@ -101,7 +101,7 @@ class ConfigManager:
     def __init__(self):
         self.path = os.path.join(os.getenv('APPDATA'), APP_NAME, "settings.json")
         self.games: List[str] = []
-        self.settings: Dict[str, Any] = {"start_in_tray": True, "single_monitor": True}
+        self.settings: Dict[str, Any] = {"start_in_tray": False, "single_monitor": True, "startup": False}
         self._load()
 
     def _load(self):

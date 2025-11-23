@@ -307,6 +307,8 @@ class App(ctk.CTk):
         self.chk_startup, f1 = self.create_vercel_switch(card, "Windows Startup", "Launch on boot", self.toggle_startup)
         f1.pack(fill="x", padx=20, pady=(20, 10))
         if self.mgr.is_startup_enabled(): self.chk_startup.select()
+        if self.cfg.settings.get("startup", False):
+            self.chk_startup.select()
 
         self.chk_tray, f2 = self.create_vercel_switch(card, "Start Minimized", "Boot to tray icon", self.save_settings)
         f2.pack(fill="x", padx=20, pady=10)
