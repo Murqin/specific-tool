@@ -10,6 +10,7 @@ import win32gui
 import win32process
 import atexit
 import logging
+from logging.handlers import RotatingFileHandler
 from typing import List, Dict, Any, Optional
 from .constants import APP_NAME
 from .hardware import IMouseBackend, IGPUBackend, IOSMouseService
@@ -26,12 +27,20 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(log_file, mode='w', encoding='utf-8'), 
+        RotatingFileHandler(
+            log_file, 
+            maxBytes=2*1024*1024, 
+            backupCount=2,     
+            encoding='utf-8',
+            mode='a'          
+        ), 
         logging.StreamHandler(sys.stdout) # For debug
     ]
 )
 logger = logging.getLogger(__name__)
 # ----------------------------- #
+
+
 
 class AppManager:
     """

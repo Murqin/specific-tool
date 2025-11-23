@@ -54,7 +54,7 @@ class VXEMouseBackend(IMouseBackend):
         try:
             for d in hid.enumerate(self.VENDOR_ID, self.PRODUCT_ID):
                 path = d['path'].decode('utf-8','ignore').lower()
-                if "mi_01" in path and "col05" in path:
+                if "mi_01" in path and "col05" in path:  # Channel & interface
                     self.device = hid.device()
                     self.device.open_path(d['path'])
                     self.device.set_nonblocking(1)

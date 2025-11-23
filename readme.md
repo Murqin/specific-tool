@@ -22,11 +22,31 @@ Specific Tool is a high-performance input optimization and peripheral management
 - **HIDAPI:** Raw USB communication for mouse MCU configuration.
 - **CustomTkinter:** Modern, high-DPI aware UI.
 
-## 📦 Installation
+## ⚖️ Disclaimer
 
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/Murqin/specific-tool.git](https://github.com/Murqin/specific-tool.git)
+This project is based on **reverse engineering** of the original hardware protocols and is not official software distributed by ATK/VXE.
+
+⚠️ **Critical Warning:** The manufacturer (ATK/VXE) may alter the USB communication protocol and Hex command sequences with a future **Firmware Update**.
+
+* Using this software after a firmware update may result in unexpected hardware behavior due to protocol mismatches.
+* The user assumes full responsibility for any potential damage (including device bricking, malfunction, or data loss).
+
+The developer accepts no liability for any technical issues arising from the use of this tool. **Use at your own risk.**
+
+## 📦 Installation
+1. git clone https://github.com/Murqin/specific-tool.git
+2. cd specific-tool
+3. python -m pip install -r requirements.txt
+4. python -m PyInstaller --noconsole --onefile --name="Specific Tool" --clean --uac-admin --icon="assets/specific-tool.ico" main.py
+
+## 📦 Alternative Installation (I recommend this.)
+1. git clone https://github.com/Murqin/specific-tool.git
+2. cd specific-tool
+3. py -3.9 -m venv .venv
+4. .venv\Scripts\Activate.ps1
+5. python -m pip install -r requirements.txt
+6. .\build.bat
+
 
 
 ## 🧪 For Developers: Porting to Other Mice
@@ -35,18 +55,35 @@ Currently, the `MouseBackend` class is hardcoded with **VXE MAD R** specific USB
 
 If you want to port this tool to your own mouse (e.g., Logitech, Razer, Lamzu), follow these steps:
 
-1.  **Sniff USB Traffic:** Use tools like **Wireshark** (with USBPcap) to capture packets while changing DPI and Polling Rate in your mouse's official software.
-2.  **Analyze Hex Dumps:** Identify the specific `SET_REPORT` sequences sent to the device during these changes.
-3.  **Update Constants:** Modify the following variables in `src/main.py`:
+1. **Sniff USB Traffic:** Use tools like **Wireshark** (with USBPcap) to capture packets while changing DPI and Polling Rate in your mouse's official software.
+2. **Analyze Hex Dumps:** Identify the specific `SET_REPORT` sequences sent to the device during these changes.
+3. **Update Constants:** Modify the following variables in `modules/constants.py`:
 
-    ```python
-    # In class MouseBackend:
-    self.VENDOR_ID = 0xYOUR_VID
-    self.PRODUCT_ID = 0xYOUR_PID
+```python
+# In class MouseBackend:
+self.VENDOR_ID = 0xYOUR_VID
+self.PRODUCT_ID = 0xYOUR_PID
 
-    # Update Command Arrays (Example)
-    CMD_HZ_8000 = [0xDE, 0xAD, 0xBE, 0xEF, ...] # Your 8KHz Hex Sequence
-    SEQ_DPI_1600 = [[0x01, ...], [0x02, ...]]    # Your DPI Switch Sequence
-    ```
+# Update Command Arrays (Example)
+CMD_HZ_8000 = [0xDE, 0xAD, 0xBE, 0xEF, ...] # Your 8KHz Hex Sequence
+SEQ_DPI_1600 = [[0x01, ...], [0x02, ...]]    # Your DPI Switch Sequence
+````
 
-> **Tip:** If your mouse requires a specific "Handshake" or "Unlock" sequence before accepting commands, ensure you send those packets first in the `connect()` method.
+4. **Interface Selection (CRITICAL) ⚠️**
+
+Modern gaming mice are "Composite Devices" that expose multiple **HID Interfaces** when connected. You must target the specific interface used for configuration (Vendor Specific), not the standard mouse input interface.
+
+* **Interface 0:** Standard Mouse Input (Movement/Clicks) - *Do not touch.*
+* **Interface 1 or 2:** Keyboard/Media Keys or **Configuration (Vendor Specific)** <--- **Target**
+
+In `modules/hardware.py` (Line ~57), the code filters for the specific configuration interface. **You must modify this condition to match your mouse's HID path:**
+
+```python
+# VXE MAD R uses Interface 1 (mi_01) and Collection 5 (col05)
+# TODO: Update checking logic below for your specific mouse!
+if "mi_01" in path and "col05" in path:
+    # Found the correct HID device for configuration
+    return device
+
+
+5. 
