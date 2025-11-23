@@ -46,8 +46,8 @@ The developer accepts no liability for any technical issues arising from the use
 ## 📦 Alternative Installation (I recommend this.)
 1. git clone https://github.com/Murqin/specific-tool.git
 2. cd specific-tool
-3. py -3.9 -m venv .venv
-4. .venv\Scripts\Activate.ps1
+3. py -3.9 -m venv env
+4. env\Scripts\Activate.ps1
 5. python -m pip install -r requirements.txt
 6. .\build.bat
 
