@@ -3,3 +3,4 @@ hid
 Pillow
 psutil
 pywin32
+pystray
