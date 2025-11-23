@@ -83,7 +83,7 @@ class AppManager:
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.reg_key, 0, winreg.KEY_ALL_ACCESS)
             if enable:
-                winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, f'"{self.target_path}" --minimized')
+                winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, f'"{self.target_path}"')
             else:
                 winreg.DeleteValue(key, APP_NAME)
             winreg.CloseKey(key)
@@ -91,6 +91,13 @@ class AppManager:
         except Exception as e:
             logger.error(f"Failed to set startup: {e}")
             return False
+
+    def set_startup_value(self, val):
+        try:
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.reg_key, 0, winreg.KEY_ALL_ACCESS)
+            winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, val)
+            winreg.CloseKey(key)
+        except: pass
 
 class ConfigManager:
     """
