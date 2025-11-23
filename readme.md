@@ -84,6 +84,3 @@ In `modules/hardware.py` (Line ~57), the code filters for the specific configura
 if "mi_01" in path and "col05" in path:
     # Found the correct HID device for configuration
     return device
-
-
-5. 
