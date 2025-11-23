@@ -8,7 +8,7 @@ Specific Tool is a high-performance input optimization and peripheral management
 
 ## 🚀 Key Features
 
-- **Murqin Mode (Input Normalization):** Implements a mathematical transfer function to allow **High Hardware DPI (e.g., 1600)** paired with **Low Software Sensitivity**. This reduces sensor noise and jitter while maintaining the user's preferred cursor speed (e.g., 800 eDPI feel).
+- **Murqin Mode (Reference to Elon mode (Input Normalization)):** Implements a mathematical transfer function to allow **High Hardware DPI (e.g., 1600)** paired with **Low Software Sensitivity**. This reduces sensor noise and jitter while maintaining the user's preferred cursor speed (e.g., 800 eDPI feel).
 
 - **Bus Contention Safety:** Features a robust packet queue system with debounce logic to prevent USB HID write collisions during rapid state changes (Alt-Tab).
 
