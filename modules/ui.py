@@ -93,7 +93,7 @@ class App(ctk.CTk):
         self.cfg = ConfigManager()
         self.cfg.save()  # Ensure configuration is saved on startup
         self.mgr = AppManager()
-        self.mgr.ensure_installed()
+        
 
         self.hw_mouse = VXEMouseBackend()
         self.hw_mouse_connected = self.hw_mouse.connect()

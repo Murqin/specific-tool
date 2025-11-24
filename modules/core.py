@@ -3,6 +3,7 @@ import os
 import json
 import sys
 import shutil
+from pathlib import Path
 import winreg
 import time
 import psutil
@@ -16,7 +17,7 @@ from .constants import APP_NAME
 from .hardware import IMouseBackend, IGPUBackend, IOSMouseService
 
 # --- LOGGING --- #
-log_dir = os.path.join(os.getenv('APPDATA'), APP_NAME)
+log_dir = os.path.join(os.getenv('APPDATA'), "Murqin", APP_NAME)
 if not os.path.exists(log_dir):
     try: os.makedirs(log_dir)
     except: pass
@@ -46,47 +47,46 @@ class AppManager:
     """
     Manages application installation and startup persistence.
     
-    Handles copying the executable to the AppData directory and managing
+    Handles startup registry operations
     the Windows Registry key for startup execution.
     """
     def __init__(self):
-        self.appdata_dir = os.path.join(os.getenv('APPDATA'), APP_NAME)
+        self.appdata_dir = Path(os.getenv('LOCALAPPDATA')) / "Murqin" / APP_NAME / "logs"
         if getattr(sys, 'frozen', False):
             self.current_path = sys.executable
             self.exe_name = os.path.basename(sys.executable)
         else:
             self.current_path = os.path.abspath(sys.argv[0])
             self.exe_name = f"{APP_NAME}.exe"
-        self.target_path = os.path.join(self.appdata_dir, self.exe_name)
+        self.target_path = self.current_path
         self.reg_key = r"Software\Microsoft\Windows\CurrentVersion\Run"
-
-    def ensure_installed(self):
-        if getattr(sys, 'frozen', False):
-            try:
-                if not os.path.exists(self.appdata_dir): os.makedirs(self.appdata_dir)
-                if self.current_path.lower() != self.target_path.lower(): 
-                    shutil.copy2(self.current_path, self.target_path)
-            except Exception as e:
-                logger.error(f"Failed to ensure installation: {e}")
 
     def is_startup_enabled(self) -> bool:
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.reg_key, 0, winreg.KEY_READ)
             val, _ = winreg.QueryValueEx(key, APP_NAME)
             winreg.CloseKey(key)
-            return self.target_path in val
+            return self.current_path in val
         except Exception as e:
             logger.warning(f"Failed to check startup status: {e}")
             return False
 
     def set_startup(self, enable=True):
         try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, self.reg_key, 0, winreg.KEY_ALL_ACCESS)
+            import subprocess
             if enable:
-                winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, f'"{self.target_path}"')
+                subprocess.run([
+                "powershell",
+                "-Command",
+                "Start-Process reg -ArgumentList 'add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v \"%s\" /t REG_SZ /d \"%s\" /f' -Verb RunAs" 
+                % (APP_NAME, self.current_path))])
             else:
-                winreg.DeleteValue(key, APP_NAME)
-            winreg.CloseKey(key)
+                subprocess.run([
+                "powershell",
+                "-Command",
+                "Start-Process reg -ArgumentList 'delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v \"%s\" /f' -Verb RunAs" 
+                % APP_NAME
+            ])
             return True
         except Exception as e:
             logger.error(f"Failed to set startup: {e}")
@@ -106,7 +106,7 @@ class ConfigManager:
     Loads and saves configuration from a JSON file in the AppData directory.
     """
     def __init__(self):
-        self.path = os.path.join(os.getenv('APPDATA'), APP_NAME, "settings.json")
+        self.path = os.path.join(os.getenv('LOCALAPPDATA'), "Murqin", APP_NAME, "settings.json")
         self.games: List[str] = []
         self.settings: Dict[str, Any] = {"start_in_tray": False, "single_monitor": True, "startup": False}
         self._load()
