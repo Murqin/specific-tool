@@ -73,7 +73,7 @@ class VXEMouseBackend(IMouseBackend):
         if not self.device: return
         for p in SEQ_DPI_1600: self._send(p); time.sleep(0.02)
         time.sleep(0.25)
-        self._send(CMD_HZ_8000)
+        self._send(CMD_HZ_2000)
 
     def set_desktop_mode(self):
         if not self.device: return

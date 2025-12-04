@@ -13,33 +13,31 @@ import atexit
 import logging
 from logging.handlers import RotatingFileHandler
 from typing import List, Dict, Any, Optional
-from .constants import APP_NAME
+from .constants import APP_NAME, DATA_DIR, LOG_FILE, CONFIG_FILE
 from .hardware import IMouseBackend, IGPUBackend, IOSMouseService
 
-# --- LOGGING --- #
-log_dir = os.path.join(os.getenv('APPDATA'), "Murqin", APP_NAME)
-if not os.path.exists(log_dir):
-    try: os.makedirs(log_dir)
-    except: pass
+def setup_logging():
+    if not os.path.exists(DATA_DIR):
+        try: os.makedirs(DATA_DIR)
+        except: pass
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            RotatingFileHandler(
+                LOG_FILE, 
+                maxBytes=2*1024*1024, 
+                backupCount=2,     
+                encoding='utf-8',
+                mode='a'          
+            ), 
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
 
-log_file = os.path.join(log_dir, "debug.log")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        RotatingFileHandler(
-            log_file, 
-            maxBytes=2*1024*1024, 
-            backupCount=2,     
-            encoding='utf-8',
-            mode='a'          
-        ), 
-        logging.StreamHandler(sys.stdout) # For debug
-    ]
-)
+setup_logging()
 logger = logging.getLogger(__name__)
-# ----------------------------- #
 
 
 
@@ -51,7 +49,7 @@ class AppManager:
     the Windows Registry key for startup execution.
     """
     def __init__(self):
-        self.appdata_dir = Path(os.getenv('LOCALAPPDATA')) / "Murqin" / APP_NAME / "logs"
+        self.appdata_dir = DATA_DIR
         if getattr(sys, 'frozen', False):
             self.current_path = sys.executable
             self.exe_name = os.path.basename(sys.executable)
@@ -107,10 +105,24 @@ class ConfigManager:
     Loads and saves configuration from a JSON file in the AppData directory.
     """
     def __init__(self):
-        self.path = os.path.join(os.getenv('LOCALAPPDATA'), "Murqin", APP_NAME, "settings.json")
+        self.path = CONFIG_FILE
         self.games: List[str] = []
-        self.settings: Dict[str, Any] = {"start_in_tray": False, "single_monitor": True, "startup": False}
+        self.settings: Dict[str, Any] = {
+            "start_in_tray": False, 
+            "single_monitor": True, 
+            "startup": False,
+            "murqin_mode": False
+        }
         self._load()
+
+    @property
+    def murqin_mode(self) -> bool:
+        return self.settings.get("murqin_mode", False)
+
+    @murqin_mode.setter
+    def murqin_mode(self, value: bool):
+        self.settings["murqin_mode"] = value
+        self.save()
 
     def _load(self):
         if not os.path.exists(self.path): return
@@ -189,7 +201,21 @@ class AutomationEngine:
                     if self.current_state != "game":
                         self.gpu.set_vibrance(v_game, single_mon)
                         self.mouse.set_game_mode()
-                        if murqin: self.os_mouse.optimize(800, 1600)
+                        
+                        # Sync Murqin Mode from UI to Config if changed, or enforce config
+                        # Since we can't easily read UI state here without a callback, we rely on the UI calling us or us checking a shared state.
+                        # However, the requirement is "remember on next startup".
+                        # So we just need to make sure that when the UI toggles it, it saves to config.
+                        # But here in the loop, we are applying the mode.
+                        
+                        if murqin: 
+                            self.os_mouse.optimize(800, 1600)
+                            if not self.cfg.murqin_mode: # If config says False but UI says True (user toggled it on)
+                                self.cfg.murqin_mode = True
+                        else:
+                            if self.cfg.murqin_mode: # If config says True but UI says False (user toggled it off)
+                                self.cfg.murqin_mode = False
+                        
                         self.ui_provider('status')("GAME MODE ACTIVE", True)
                         self.current_state = "game"
                 else:

@@ -337,6 +337,12 @@ class App(ctk.CTk):
         conf_card = ctk.CTkFrame(p, fg_color="transparent", border_width=1, border_color=THEME["BORDER"], corner_radius=8)
         conf_card.pack(fill="x", pady=(0, 20))
         self.chk_murqin, f = self.create_vercel_switch(conf_card, "Murqin Mode", "Input Normalization", self.toggle_murqin)
+        if self.cfg.settings.get("murqin_mode", False):
+            self.chk_murqin.select()
+            self.murqin_mode = True
+        else:
+            self.chk_murqin.deselect()
+            self.murqin_mode = False
         f.pack(fill="x", padx=20, pady=20)
 
         # 3. Hardware Status Area
@@ -486,7 +492,11 @@ class App(ctk.CTk):
 
     def toggle_murqin(self):
         """Toggles the Murqin Mode setting."""
-        self.murqin_mode = bool(self.chk_murqin.get())
+        state = bool(self.chk_murqin.get())
+        self.cfg.settings["murqin_mode"] = state
+        self.cfg.save()
+        self.murqin_mode = state
+
 
     def toggle_startup(self):
         """
