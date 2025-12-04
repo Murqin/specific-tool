@@ -7,7 +7,7 @@ import time
 import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from .constants import CMD_HZ_8000, CMD_HZ_1000, SEQ_DPI_1600, SEQ_DPI_800
+from .constants import CMD_HZ_2000, CMD_HZ_1000, SEQ_DPI_1600, SEQ_DPI_800
 
 logger = logging.getLogger(__name__)
 
