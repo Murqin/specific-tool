@@ -38,13 +38,13 @@ This project is based on **reverse engineering** of the original hardware protoc
 The developer accepts no liability for any technical issues arising from the use of this tool. **Use at your own risk.**
 
 ## 📦 Installation
-1. git clone https://github.com/Murqin/specific-tool.git
+1. git clone https://github.com/Murqinistic-tools/specific-tool.git
 2. cd specific-tool
 3. python -m pip install -r requirements.txt
 4. python -m PyInstaller --noconsole --onefile --name="Specific Tool" --clean --uac-admin --icon="assets/specific-tool.ico" main.py
 
 ## 📦 Alternative Installation (I recommend this.)
-1. git clone https://github.com/Murqin/specific-tool.git
+1. git clone https://github.com/Murqinistic-tools/specific-tool.git
 2. cd specific-tool
 3. py -3.9 -m venv env
 4. env\Scripts\Activate.ps1
